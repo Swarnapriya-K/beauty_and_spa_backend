@@ -6,12 +6,14 @@ const userRouter = require("./routes/userRoutes");
 const productRouter = require("./routes/productsRoutes");
 const orderRouter = require("./routes/ordersRoutes");
 const serviceRouter = require("./routes/serviceRoutes");
+const path = require("path");
 
 const app = express();
 
 app.use(cors());
 
 app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 const PORT = process.env.PORT;
 
@@ -28,7 +30,6 @@ app.use("/api/users", userRouter);
 app.use("/api/products", productRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/service", serviceRouter);
-
 app.get("/", (req, res) => {
   res.json(
     "Hello World! Server is running and we are getting the data from the backend."

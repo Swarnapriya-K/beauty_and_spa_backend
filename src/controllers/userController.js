@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 const registerUser = async (req, res) => {
   try {
     const { username, password, role } = req.body;
-    const user = new User({ username, password, role });
+    const user = new User({ username, password, role: role || "user" });
     await user.save();
     res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
@@ -19,6 +19,7 @@ const loginUser = async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
+    console.log(user);
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ error: "Invalid username or password" });
     }
@@ -26,10 +27,12 @@ const loginUser = async (req, res) => {
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
       {
-        expiresIn: "1h"
+        expiresIn: "1d"
       }
     );
-    res.status(200).json({ message: "Login successful", token });
+    res
+      .status(200)
+      .json({ message: "Login successful", token, role: user.role });
   } catch (err) {
     res.status(500).json({ error: "Error logging in", details: err.message });
   }
