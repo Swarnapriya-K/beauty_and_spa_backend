@@ -1,13 +1,18 @@
 const express = require("express");
 const {
-  getHelloWorld,
   getServiceProviders,
+  addService,
+  getServices,
+  getTestAPI
 } = require("../controllers/serviceController");
 const { authMiddleware } = require("../controllers/userController");
 
 const router = express.Router();
 
-router.get("/", authMiddleware, getHelloWorld);
-router.get("/serviceProviders", authMiddleware, getServiceProviders)
+// Define routes
+router.get("/test", getTestAPI)
+router.get("/serviceProviders", authMiddleware, getServiceProviders);
+router.get("/get-services", authMiddleware, getServices);
+router.post("/add-service", authMiddleware, addService);
 
 module.exports = router;
