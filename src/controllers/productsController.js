@@ -3,7 +3,7 @@ const Product = require("../models/Product");
 // Get Products Controller
 const getProducts = async (req, res) => {
   try {
-    const products = await Product.find();
+    const products = await Product.find().populate("categoryId", "name").exec();
     res.status(200).json({
       message: "Products retrieved successfully.",
       products
@@ -22,8 +22,11 @@ const addProduct = async (req, res) => {
       productPrice,
       productQuantity,
       discount,
-      description
+      description,
+      categoryId
     } = req.body;
+
+    console.log(req.body);
 
     // Validate required fields
     if (!productName || productPrice === null || productQuantity === null) {
@@ -40,7 +43,8 @@ const addProduct = async (req, res) => {
       productQuantity,
       discount: discount || null,
       description: description || "",
-      image: imagePath
+      image: imagePath,
+      categoryId
     });
 
     // Save to the database
@@ -87,4 +91,48 @@ const deleteProducts = async (req, res) => {
   }
 };
 
-module.exports = { addProduct, getProducts, deleteProducts };
+const editProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    let updatedProduct = req.body;
+    console.log(req.body);
+
+    let product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found!" });
+    }
+
+    const duplicateProduct = await Product.findOne({
+      productName: updatedProduct.productName
+    });
+    if (duplicateProduct && duplicateProduct._id.toString() !== id) {
+      return res
+        .status(400)
+        .json({ message: "Product with this name already exists!" });
+    }
+
+    // Update fields explicitly
+    product.productName = updatedProduct.productName || product.productName;
+    product.productPrice = updatedProduct.productPrice || product.productPrice;
+    product.discount = updatedProduct.discount || product.discount;
+    product.description = updatedProduct.description || product.description;
+    product.categoryId = updatedProduct.categoryId || product.categoryId;
+
+    const imagePath = req.file ? req.file.path : null;
+    console.log(imagePath);
+
+    product.image = imagePath; // Assuming `multer` handles file uploads
+
+    // Save the updated product
+    await product.save();
+
+    await product.save();
+
+    res.status(200).json({ message: "Product updated successfully!", product });
+  } catch (error) {
+    console.error("Error updating product:", error);
+    res.status(500).json({ message: "Server error, please try again later." });
+  }
+};
+
+module.exports = { addProduct, getProducts, deleteProducts, editProduct };

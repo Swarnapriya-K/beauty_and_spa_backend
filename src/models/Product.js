@@ -11,11 +11,6 @@ const productSchema = new mongoose.Schema({
     required: true,
     min: 1
   },
-  productQuantity: {
-    type: Number,
-    required: true,
-    min: 1
-  },
   discount: {
     type: Number,
     default: null,
@@ -27,7 +22,12 @@ const productSchema = new mongoose.Schema({
     default: "",
     trim: true
   },
-  image: { type: String, default: null }
+  image: { type: String, default: null },
+  categoryId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Category",
+    required: true
+  }
 });
 
 module.exports = mongoose.model("Product", productSchema);
