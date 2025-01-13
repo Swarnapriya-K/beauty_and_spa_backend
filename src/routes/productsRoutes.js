@@ -3,7 +3,10 @@ const {
   addProduct,
   getProducts,
   deleteProducts,
-  editProduct
+  editProduct,
+  exportProductsCsv,
+  exportProductsExcel,
+  exportProductsPdf
 } = require("../controllers/productsController");
 const { authMiddleware } = require("../controllers/userController");
 const upload = require("../middlewares/multerConfig");
@@ -19,5 +22,8 @@ router.patch(
   upload.single("image"),
   editProduct
 );
+router.get("/export-product-csv", exportProductsCsv);
+router.get("/export-product-excel", exportProductsExcel);
+router.get("/export-product-pdf", exportProductsPdf);
 
 module.exports = router;

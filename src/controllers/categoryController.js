@@ -1,4 +1,8 @@
 const Category = require("../models/Category");
+const XLSX = require("xlsx");
+const csv = require("fast-csv");
+const fs = require("fs");
+const PDFDocument = require("pdfkit");
 
 // Add a new category to the CategoryList collection
 const addCategory = async (req, res) => {
@@ -29,7 +33,7 @@ const addCategory = async (req, res) => {
 // Get all categories from the CategoryList collection
 const getCategories = async (req, res) => {
   try {
-    const categories = await Category.find();
+    const categories = await Category.find().sort({ createdAt: -1 });
     res
       .status(200)
       .json({ message: "Categories fetched successfully", categories });
@@ -93,4 +97,97 @@ const editCategory = async (req, res) => {
   }
 };
 
-module.exports = { addCategory, getCategories, deleteCategories, editCategory };
+const exportCsv = async (req, res) => {
+  try {
+    const categories = await Category.find().exec();
+    console.log(categories);
+
+    res.setHeader("Content-Disposition", "attachment; filename=data.csv");
+    res.setHeader("Content-Type", "text/csv");
+
+    const flattenedData = categories.map((row) => ({
+      id: row.id,
+      name: row.name
+    }));
+
+    const csvStream = csv.format({ headers: true });
+    csvStream.pipe(res);
+    flattenedData.forEach((row) => csvStream.write(row));
+    csvStream.end();
+  } catch (error) {
+    console.log("error", error);
+    res.status(500).send("Internal service error");
+  }
+};
+
+const exportExcel = async (req, res) => {
+  try {
+    const categories = await Category.find().exec();
+
+    const flattenedData = categories.map((row) => ({
+      id: row.id,
+      name: row.name
+    }));
+
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(flattenedData);
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Categories");
+
+    const filepath = "categories.xlsx";
+    XLSX.writeFile(workbook, filepath);
+
+    res.download(filepath, "categories.xlsx", (err) => {
+      if (err) console.log("error", err);
+      fs.unlinkSync(filepath);
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Internal server error");
+  }
+};
+
+const exportPdf = async (req, res) => {
+  try {
+    const categories = await Category.find().exec();
+
+    const flattenedData = categories.map((row) => ({
+      id: row.id,
+      name: row.name
+    }));
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", "attachment; filename=category.pdf");
+
+    // Create a PDF document and pipe it to the response
+    const pdfDoc = new PDFDocument();
+    pdfDoc.pipe(res);
+
+    // Add content to the PDF
+    pdfDoc.fontSize(16).text("Category List", { align: "center" });
+    pdfDoc.moveDown();
+
+    flattenedData.forEach((category, index) => {
+      pdfDoc
+        .fontSize(12)
+        .text(`ID: ${category.id}`)
+        .text(`Name: ${category.name}`)
+        .moveDown();
+    });
+
+    // Finalize the PDF
+    pdfDoc.end();
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Internal server error");
+  }
+};
+
+module.exports = {
+  addCategory,
+  getCategories,
+  deleteCategories,
+  editCategory,
+  exportCsv,
+  exportExcel,
+  exportPdf
+};

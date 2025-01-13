@@ -4,7 +4,10 @@ const {
   addCategory,
   getCategories,
   deleteCategories,
-  editCategory
+  editCategory,
+  exportCsv,
+  exportExcel,
+  exportPdf
 } = require("../controllers/categoryController");
 const router = express.Router();
 
@@ -16,6 +19,12 @@ router.get("/get-category", getCategories);
 
 router.delete("/delete-categories", deleteCategories);
 
-router.patch("/edit-category/:id", editCategory)
+router.patch("/edit-category/:id", editCategory);
+
+router.get("/export-category-csv", exportCsv);
+
+router.get("/export-category-excel", exportExcel);
+
+router.get("/export-category-pdf", exportPdf);
 
 module.exports = router;
