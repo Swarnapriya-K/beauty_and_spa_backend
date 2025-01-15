@@ -1,4 +1,5 @@
 const Category = require("../models/Category");
+const Product = require("../models/Product")
 const XLSX = require("xlsx");
 const csv = require("fast-csv");
 const fs = require("fs");
@@ -53,14 +54,21 @@ const deleteCategories = async (req, res) => {
         .json({ message: "Please provide an array of category IDs." });
     }
 
-    const result = await Category.deleteMany({ _id: { $in: ids } });
+    // Delete associated products
+    const productResult = await Product.deleteMany({ categoryId: { $in: ids } });
 
-    if (result.deletedCount === 0) {
+
+    console.log(productResult)
+
+    // Delete the categories
+    const categoryResult = await Category.deleteMany({ _id: { $in: ids } });
+
+    if (categoryResult.deletedCount === 0) {
       return res.status(404).json({ message: "No category found to delete." });
     }
 
     res.status(200).json({
-      message: `${result.deletedCount} categories deleted successfully.`
+      message: `${categoryResult.deletedCount} categories and ${productResult.deletedCount} products deleted successfully.`
     });
   } catch (error) {
     console.error("Error deleting categories:", error);
