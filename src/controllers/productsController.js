@@ -81,7 +81,7 @@ const deleteProducts = async (req, res) => {
     }
 
     // Delete multiple products using `$in` operator
-    const result = await Product.deleteMany({ categoryId: { $in: ids } });
+    const result = await Product.deleteMany({ _id: { $in: ids } });
 
     // Check if any products were deleted
     if (result.deletedCount === 0) {

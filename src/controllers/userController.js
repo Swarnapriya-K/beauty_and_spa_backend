@@ -5,13 +5,29 @@ const bcrypt = require("bcrypt");
 const registerUser = async (req, res) => {
   try {
     const { username, password, role } = req.body;
-    const user = new User({ username, password, role: role || "user" });
+
+    // Add await to the database query
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ message: "Username already exists" });
+    }
+
+    // Hash password before saving
+
+    const user = new User({
+      username,
+      password,
+      role: role || "user"
+    });
+
     await user.save();
     res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
-    res
-      .status(400)
-      .json({ error: "Error registering user", details: err.message });
+    res.status(500).json({
+      // Use 500 for server errors
+      error: "Error registering user",
+      details: err.message
+    });
   }
 };
 

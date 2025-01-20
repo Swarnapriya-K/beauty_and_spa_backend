@@ -7,6 +7,7 @@ const productSchema = new mongoose.Schema(
       required: true,
       trim: true
     },
+    deletedCategoryName: String,
     productPrice: {
       type: Number,
       required: true,
@@ -23,12 +24,13 @@ const productSchema = new mongoose.Schema(
       default: "",
       trim: true
     },
-    image: { type: String, default: null },
+    image: { type: String, default: null, required: true },
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
       required: true
-    },
+    }
   },
+  { timestamps: true }
 );
 module.exports = mongoose.model("Product", productSchema);

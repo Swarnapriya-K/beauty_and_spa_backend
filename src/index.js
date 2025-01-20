@@ -7,6 +7,7 @@ const productRouter = require("./routes/productsRoutes");
 const orderRouter = require("./routes/ordersRoutes");
 const serviceRouter = require("./routes/serviceRoutes");
 const categoryRouter = require("./routes/categoryRoutes");
+const cartRouter = require("./routes/cartRoutes");
 const path = require("path");
 
 const app = express();
@@ -31,6 +32,7 @@ app.use("/api/products", productRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/service", serviceRouter);
 app.use("/api/category", categoryRouter);
+app.use("/api/cart", cartRouter);
 app.get("/", (req, res) => {
   res.json(
     "Hello World! Server is running and we are getting the data from the backend."

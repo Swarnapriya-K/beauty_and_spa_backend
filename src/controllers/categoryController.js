@@ -1,5 +1,4 @@
 const Category = require("../models/Category");
-const Product = require("../models/Product")
 const XLSX = require("xlsx");
 const csv = require("fast-csv");
 const fs = require("fs");
@@ -10,34 +9,52 @@ const addCategory = async (req, res) => {
   try {
     const { name } = req.body;
 
-    // Check if the category already exists
+    // Check if the category already exists and is inactive
     const existingCategory = await Category.findOne({ name });
+
     if (existingCategory) {
-      return res.status(400).json({ message: "Category already exists!" });
+      // If the category is inactive, reactivate it
+      if (!existingCategory.active) {
+        existingCategory.active = true; // Set the category to active
+        await existingCategory.save(); // Save the changes
+        return res.status(200).json({
+          message: "Category reactivated successfully!",
+          category: existingCategory
+        });
+      } else {
+        // If the category is already active, return a message
+        return res.status(400).json({ message: "Category already exists!" });
+      }
     }
 
-    // Create a new category
-    const newCategory = new Category({ name });
+    // If the category does not exist, create a new one
+    const newCategory = new Category({ name, active: true });
 
     // Save the new category to the database
     await newCategory.save();
 
-    res
-      .status(201)
-      .json({ message: "Category added successfully!", category: newCategory });
+    res.status(201).json({
+      message: "Category added successfully!",
+      category: newCategory
+    });
   } catch (error) {
     console.error("Error adding category:", error);
     res.status(500).json({ message: "Server error, please try again later." });
   }
 };
 
+
 // Get all categories from the CategoryList collection
 const getCategories = async (req, res) => {
   try {
-    const categories = await Category.find().sort({ createdAt: -1 });
-    res
-      .status(200)
-      .json({ message: "Categories fetched successfully", categories });
+    // Fetch only active categories
+    const categories = await Category.find({ active: true }).sort({
+      createdAt: -1
+    });
+    res.status(200).json({
+      message: "Active categories fetched successfully",
+      categories
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Failed to fetch categories" });
@@ -54,38 +71,40 @@ const deleteCategories = async (req, res) => {
         .json({ message: "Please provide an array of category IDs." });
     }
 
-    // Delete associated products
-    const productResult = await Product.deleteMany({ categoryId: { $in: ids } });
+    // Soft delete: Set `active` to `false` for the given categories
+    const categoryResult = await Category.updateMany(
+      { _id: { $in: ids }, active: true }, // Update only active categories
+      { $set: { active: false } }
+    );
 
-
-    console.log(productResult)
-
-    // Delete the categories
-    const categoryResult = await Category.deleteMany({ _id: { $in: ids } });
-
-    if (categoryResult.deletedCount === 0) {
-      return res.status(404).json({ message: "No category found to delete." });
+    if (categoryResult.modifiedCount === 0) {
+      return res
+        .status(404)
+        .json({ message: "No active category found to update." });
     }
 
     res.status(200).json({
-      message: `${categoryResult.deletedCount} categories and ${productResult.deletedCount} products deleted successfully.`
+      message: `${categoryResult.modifiedCount} categories deactivated successfully.`
     });
   } catch (error) {
-    console.error("Error deleting categories:", error);
+    console.error("Error updating categories:", error);
     res.status(500).json({ message: "Internal server error." });
   }
 };
 
+
 const editCategory = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, active } = req.body; // We are now considering the "active" field for reactivation
 
+    // Find the category by ID
     const category = await Category.findById(id);
     if (!category) {
       return res.status(404).json({ message: "Category not found!" });
     }
 
+    // Check if the name already exists (excluding the current category)
     const duplicateCategory = await Category.findOne({ name });
     if (duplicateCategory && duplicateCategory._id.toString() !== id) {
       return res
@@ -93,7 +112,15 @@ const editCategory = async (req, res) => {
         .json({ message: "Category with this name already exists!" });
     }
 
+    // Update category details
     category.name = name;
+
+    // If the category is being reactivated, ensure 'active' is true
+    if (active !== undefined) {
+      category.active = active; // This ensures we can reactivate the category if needed
+    }
+
+    // Save the updated category
     await category.save();
 
     res

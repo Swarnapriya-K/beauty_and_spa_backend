@@ -17,7 +17,7 @@ router.post("/add-category", addCategory);
 // Route to get all categories
 router.get("/get-category", getCategories);
 
-router.delete("/delete-categories", deleteCategories);
+router.put("/delete-categories", deleteCategories);
 
 router.patch("/edit-category/:id", editCategory);
 

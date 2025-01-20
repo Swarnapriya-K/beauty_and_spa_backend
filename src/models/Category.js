@@ -6,8 +6,14 @@ const categorySchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true
+    },
+    active:{
+      type:Boolean,
+      require:false,
+      default:true
     }
   },
+  { timestamps: true }
 );
 
 module.exports = mongoose.model("Category", categorySchema);

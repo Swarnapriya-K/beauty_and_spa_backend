@@ -13,7 +13,7 @@ const upload = require("../middlewares/multerConfig");
 
 const router = express.Router();
 
-router.get("/get-products", authMiddleware, getProducts);
+router.get("/get-products", getProducts);
 router.post("/add-product", authMiddleware, upload.single("image"), addProduct);
 router.delete("/delete-products", authMiddleware, deleteProducts);
 router.patch(
