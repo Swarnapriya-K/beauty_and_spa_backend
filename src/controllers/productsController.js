@@ -154,7 +154,6 @@ const exportProductsCsv = async (req, res) => {
       id: row.id,
       name: row.productName,
       price: row.productPrice,
-      discount: row.discount,
       description: row.description,
       category: row?.categoryId?.name
     }));
