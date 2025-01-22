@@ -147,7 +147,7 @@ const getOrder = async (req, res) => {
 
 const getOrders = async (req, res) => {
   try {
-    const orders = await Order.find();
+    const orders = await Order.find().sort({ createdAt: -1 });
 
     // Transform the data
     const flattenedData = orders.map((row) => ({
@@ -177,6 +177,36 @@ const getOrders = async (req, res) => {
       message: "Error retrieving ordeasfasdfqwerr",
       error: error.message
     });
+  }
+};
+
+const deleteOrders = async (req, res) => {
+  try {
+    // Extract order IDs from the request body
+    const { ids } = req.body;
+
+    // Validate that `ids` is an array and not empty
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "Please provide an array of order IDs." });
+    }
+
+    // Delete multiple orders using `$in` operator
+    const result = await Order.deleteMany({ _id: { $in: ids } });
+
+    // Check if any orders were deleted
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "No orders found to delete." });
+    }
+
+    // Respond with a success message
+    res.status(200).json({
+      message: `${result.deletedCount} order(s) deleted successfully.`
+    });
+  } catch (error) {
+    console.error("Error deleting orders:", error);
+    res.status(500).json({ message: "Internal server error." });
   }
 };
 
@@ -291,5 +321,6 @@ module.exports = {
   getOrders,
   exportOrdersCsv,
   exportOrdersExcel,
-  exportOrdersPdf
+  exportOrdersPdf,
+  deleteOrders
 };

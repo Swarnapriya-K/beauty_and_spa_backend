@@ -59,9 +59,12 @@ const loginUser = async (req, res) => {
 };
 
 const getAllUsers = async (req, res) => {
+
   try {
     // Fetch all users from the User model
-    const users = await User.find();
+    const users = await User.find().sort({ createdAt: -1 });
+
+    // const users = await User.find();
 
     // Respond with the list of users
     return res.status(200).json({
@@ -77,6 +80,36 @@ const getAllUsers = async (req, res) => {
       message: "Failed to fetch users. Please try again later.",
       error: error.message
     });
+  }
+};
+
+const exportUsersDelete = async (req, res) => {
+  try {
+    // Extract order IDs from the request body
+    const { ids } = req.body;
+
+    // Validate that `ids` is an array and not empty
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "Please provide an array of user IDs." });
+    }
+
+    // Delete multiple orders using `$in` operator
+    const result = await User.deleteMany({ _id: { $in: ids } });
+
+    // Check if any orders were deleted
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "No user found to delete." });
+    }
+
+    // Respond with a success message
+    res.status(200).json({
+      message: `${result.deletedCount} user(s) deleted successfully.`
+    });
+  } catch (error) {
+    console.error("Error deleting users:", error);
+    res.status(500).json({ message: "Internal server error." });
   }
 };
 
@@ -183,4 +216,4 @@ const exportUsersPdf = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, authMiddleware, getAllUsers ,exportUsersPdf,exportUsersExcel,exportUsersCsv};
+module.exports = { registerUser, loginUser, authMiddleware, getAllUsers ,exportUsersPdf,exportUsersExcel,exportUsersCsv,exportUsersDelete};

@@ -7,13 +7,15 @@ const {
   getOrders,
   exportOrdersCsv,
   exportOrdersExcel,
-  exportOrdersPdf
+  exportOrdersPdf,
+  deleteOrders
 } = require("../controllers/ordersController");
 const { authMiddleware } = require("../controllers/userController");
 
 router.post("/", authMiddleware, addOrder);
 // router.get("/:id", getOrder);
 router.get("/", getOrders);
+router.delete("/delete-orders", deleteOrders);
 router.get("/export-order-csv", exportOrdersCsv);
 router.get("/export-order-excel", exportOrdersExcel);
 router.get("/export-order-pdf", exportOrdersPdf);
