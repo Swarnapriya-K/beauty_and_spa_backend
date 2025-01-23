@@ -1,6 +1,7 @@
 const Product = require("../models/Product");
 const XLSX = require("xlsx");
 const csv = require("fast-csv");
+const Category= require("../models/Category")
 const fs = require("fs");
 const PDFDocument = require("pdfkit");
 
@@ -8,11 +9,11 @@ const PDFDocument = require("pdfkit");
 // productController.js
 const getBeautyProducts = async (req, res) => {
   try {
-    // Replace 'BEAUTY_CATEGORY_ID' with your actual category ID
-    const beautyCategoryId = "6789332d042d91966b4b5282";
+    const category= await Category.findOne({name:"Beauty Products"})
+    console.log(category._id)
     
     const products = await Product.find({
-      categoryId: beautyCategoryId
+      categoryId: category._id
     })
     .populate('categoryId', 'name')
     .sort({ createdAt: -1 });
