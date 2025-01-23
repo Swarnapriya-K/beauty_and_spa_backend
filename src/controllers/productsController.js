@@ -5,18 +5,45 @@ const fs = require("fs");
 const PDFDocument = require("pdfkit");
 
 // Get Products Controller
-const getProducts = async (req, res) => {
+// productController.js
+const getBeautyProducts = async (req, res) => {
   try {
-    const products = await Product.find()
+    // Replace 'BEAUTY_CATEGORY_ID' with your actual category ID
+    const beautyCategoryId = "6789332d042d91966b4b5282";
+    
+    const products = await Product.find({
+      categoryId: beautyCategoryId
+    })
+    .populate('categoryId', 'name')
+    .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      products
+    });
+    
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Server Error'
+    });
+  }
+};
+
+const getAllItems = async (req, res) => {
+  try {
+    const items = await Product.find()
       .sort({ createdAt: -1 })
       .populate("categoryId", "name")
       .exec();
+
     res.status(200).json({
-      message: "Products retrieved successfully.",
-      products
+      message: "Items retrieved successfully.",
+      items
     });
   } catch (error) {
-    console.error("Error fetching products:", error);
+    console.error("Error fetching items:", error);
     res.status(500).json({ message: "Internal server error." });
   }
 };
@@ -248,10 +275,11 @@ const exportProductsPdf = async (req, res) => {
 
 module.exports = {
   addProduct,
-  getProducts,
+  getBeautyProducts,
   deleteProducts,
   editProduct,
   exportProductsCsv,
   exportProductsExcel,
-  exportProductsPdf
+  exportProductsPdf,
+  getAllItems
 };

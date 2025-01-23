@@ -1,8 +1,9 @@
 const express = require("express");
 const {
   addProduct,
-  getProducts,
+  getBeautyProducts,
   deleteProducts,
+  getAllItems,
   editProduct,
   exportProductsCsv,
   exportProductsExcel,
@@ -13,7 +14,8 @@ const upload = require("../middlewares/multerConfig");
 
 const router = express.Router();
 
-router.get("/get-products", getProducts);
+router.get("/get-only-products", getBeautyProducts);
+router.get("/get-products",getAllItems)
 router.post("/add-product", authMiddleware, upload.single("image"), addProduct);
 router.delete("/delete-products", authMiddleware, deleteProducts);
 router.patch(
